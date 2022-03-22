@@ -1,5 +1,8 @@
+import altair as alt
+import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
+import seaborn as sns
 import streamlit as st
 
 
@@ -151,6 +154,53 @@ def rest_revenue_from_allergy(df, allergy_choice, rest_choice):
     st.write(rest_rev_allergy)
 
 
+def general_time_trend(unstacked_gtb):
+    df = unstacked_gtb
+    fig = plt.figure(figsize=(12, 8), dpi=100)
+    sns.barplot(data=df, x="order_creation_date", y="order_id")
+    plt.title("General Orders Trend Through Time")
+    plt.tick_params(axis='x',
+                    which='both',
+                    bottom=False,
+                    top=False,
+                    labelbottom=False)
+    plt.xlabel("Time")
+    plt.ylabel("Amount of Orders")
+    st.pyplot(fig)
+
+
+def general_revenue_trend(unstacked_grb):
+    fig = plt.figure(figsize=(12, 8), dpi=100)
+    sns.barplot(data=unstacked_grb, x="order_creation_date", y="revenue")
+    plt.title("General Revenue Trend Through Time")
+    plt.tick_params(axis='x',
+                    which='both',
+                    bottom=False,
+                    top=False,
+                    labelbottom=False)
+    plt.xlabel("Time")
+    plt.ylabel("Revenue")
+    st.pyplot(fig)
+
+
+def trends(df, rest_choice, category):
+    if rest_choice == '(All)':
+        # Plot graph
+        total_rev = df.groupby(category)['revenue'].sum().sort_values(
+            ascending=False).reset_index()
+        fig = px.bar(total_rev, x=category, y="revenue")
+        fig.update_traces(marker_color='RoyalBlue')
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        total_rev = df.groupby([
+            'rest_name', category
+        ])['revenue'].sum().sort_values(ascending=False).reset_index()
+        rest_rev = total_rev[total_rev['rest_name'] == rest_choice]
+        fig = px.bar(rest_rev, x=category, y="revenue")
+        fig.update_traces(marker_color='RoyalBlue')
+        st.plotly_chart(fig, use_container_width=True)
+
+
 def main():
     if __name__ == '__main__':
         df = pd.read_csv('data/full_table.csv', index_col=0)
@@ -246,6 +296,19 @@ def main():
                                    options=df_rest)
 
         rest_revenue_from_allergy(df, allergy_choice, rest_choice)
+
+        # # Order trends across dataset timeline
+        # GENERAL_TIME_BARS = pd.DataFrame(
+        #     df.groupby(["order_creation_date"])["order_id"].count())
+        # UNSTACKED_GTB = GENERAL_TIME_BARS.reset_index()
+        # general_time_trend(UNSTACKED_GTB)
+
+        # # Revenue trends across dataset timeline
+        # GENERAL_REVENUE_BARS = pd.DataFrame(
+        #     df.groupby(["order_creation_date"])["revenue"].sum())
+        # UNSTACKED_GRB = GENERAL_REVENUE_BARS.reset_index()
+        # general_revenue_trend(UNSTACKED_GRB)
+
         # Revenue Maximization
         st.subheader("Revenue Maximization")
 
@@ -266,10 +329,13 @@ def main():
         st.subheader("Cost Optimization")
 
         st.write("INSERT GRAPH FOR ORDER TIMING TRENDS")
+        trends(df, rest_choice, "period")
 
         st.write("INSERT GRAPH FOR ORDER DAY TRENDS")
+        trends(df, rest_choice, "order_day")
 
         st.write("INSERT GRAPH FOR ORDER SEASONAL TRENDS")
+        trends(df, rest_choice, "order_season")
 
         st.write("INSERT GRAPH FOR BEST SELLING DISHES")
 
