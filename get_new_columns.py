@@ -29,16 +29,16 @@ The whole process uses only Pandas methods (to_datetime and, later, date_range) 
 to import the Datetime library. 
 """
 
-db["order_creation_time"] = pd.to_datetime(db["order_creation_date"])
+db["order_creation_date"] = pd.to_datetime(db["order_creation_date"])
 
 
 def season_of_date(date):
     year = str(date.year)
     # This dictionary must absolutely stay inside the function so the "year" is not out of scope
     seasons = {
-        'spring': pd.date_range(start = year + '-03-21 00:00:00', end = year + '-06-20 00:00:00'),
-        'summer': pd.date_range(start = year + '-06-21 00:00:00', end = year + '-09-22 00:00:00'),
-        'autumn': pd.date_range(start = year + '-09-23 00:00:00', end = year + '-12-20 00:00:00')
+        'spring': pd.date_range(start=year + '-03-21 00:00:00', end=year + '-06-20 00:00:00'),
+        'summer': pd.date_range(start=year + '-06-21 00:00:00', end=year + '-09-22 00:00:00'),
+        'autumn': pd.date_range(start=year + '-09-23 00:00:00', end=year + '-12-20 00:00:00')
     }
     if date in seasons['spring']:
         return 'spring'
@@ -48,3 +48,6 @@ def season_of_date(date):
         return 'autumn'
     else:
         return 'winter'
+
+
+db["order_season"] = db["order_creation_date"].apply(season_of_date)
