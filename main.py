@@ -1,8 +1,9 @@
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 
-def general_insights(df):
+def global_insights(df):
 
     # Unique Customers
     df_unique_cust = df.drop_duplicates(subset=['customer_id'])
@@ -38,163 +39,204 @@ def general_insights(df):
             df.groupby('city')['revenue'].sum()['San Francisco'].round(0)))
 
 
-def fav_dish_orders(df):
-
-    fav_dish_orders_df = df.groupby(['city', 'dish_name'],
-                                    as_index=False)['amount'].sum()
-
-    ny_fav_dish_orders = fav_dish_orders_df.loc[
-        (fav_dish_orders_df["city"] == "New York") &
-        (fav_dish_orders_df['amount'] == fav_dish_orders_df.loc[
-            fav_dish_orders_df["city"] == "New York"]['amount'].max()),
-        "dish_name"].iloc[0]
-
-    sf_fav_dish_orders = fav_dish_orders_df.loc[
-        (fav_dish_orders_df["city"] == "San Francisco") &
-        (fav_dish_orders_df['amount'] == fav_dish_orders_df.loc[
-            fav_dish_orders_df["city"] == "San Francisco"]['amount'].max()),
-        "dish_name"].iloc[0]
-
-    # No. of orders
-    st.markdown('**Number of orders**')
-
-    col1, col2 = st.columns(2)
-    col1.metric(label='New York',
-                value=ny_fav_dish_orders,
-                delta='{:,} orders'.format(fav_dish_orders_df[
-                    fav_dish_orders_df["city"] == "New York"]["amount"].max()))
-    col2.metric(label='San Francisco',
-                value=sf_fav_dish_orders,
-                delta='{:,} orders'.format(
-                    fav_dish_orders_df[fav_dish_orders_df["city"] ==
-                                       "San Francisco"]["amount"].max()))
-
-
-def fav_dish_revenue(df):
-
-    fav_dish_revenue_df = df.groupby(['city', 'dish_name'],
-                                     as_index=False)['revenue'].sum()
-
-    ny_fav_dish_revenue = fav_dish_revenue_df.loc[
-        (fav_dish_revenue_df["city"] == "New York") &
-        (fav_dish_revenue_df['revenue'] == fav_dish_revenue_df.loc[
-            fav_dish_revenue_df["city"] == "New York"]['revenue'].max()),
-        "dish_name"].iloc[0]
-
-    sf_fav_dish_revenue = fav_dish_revenue_df.loc[
-        (fav_dish_revenue_df["city"] == "San Francisco") &
-        (fav_dish_revenue_df['revenue'] == fav_dish_revenue_df.loc[
-            fav_dish_revenue_df["city"] == "San Francisco"]['revenue'].max()),
-        "dish_name"].iloc[0]
-
-    col1, col2 = st.columns(2)
-    col1.metric(label='New York',
-                value=ny_fav_dish_revenue,
-                delta='${:,}'.format(
-                    fav_dish_revenue_df[fav_dish_revenue_df["city"] ==
-                                        "New York"]["revenue"].max()))
-    col2.metric(label='San Francisco',
-                value=sf_fav_dish_revenue,
-                delta='${:,}'.format(
-                    fav_dish_revenue_df[fav_dish_revenue_df["city"] ==
-                                        "San Francisco"]["revenue"].max()))
-
-
-def fav_rest_orders(df):
-
-    fav_rest_orders_df = df.groupby(['city', 'rest_name'],
-                                    as_index=False)['amount'].sum()
-
-    ny_fav_rest_orders = fav_rest_orders_df.loc[
-        (fav_rest_orders_df["city"] == "New York") &
-        (fav_rest_orders_df['amount'] == fav_rest_orders_df.loc[
-            fav_rest_orders_df["city"] == "New York"]['amount'].max()),
-        "rest_name"].iloc[0]
-
-    sf_fav_rest_orders = fav_rest_orders_df.loc[
-        (fav_rest_orders_df["city"] == "San Francisco") &
-        (fav_rest_orders_df['amount'] == fav_rest_orders_df.loc[
-            fav_rest_orders_df["city"] == "San Francisco"]['amount'].max()),
-        "rest_name"].iloc[0]
-
-    # No. of orders
-    st.markdown('**Number of orders**')
-
-    col1, col2 = st.columns(2)
-    col1.metric(label='New York',
-                value=ny_fav_rest_orders,
-                delta='{:,} orders'.format(fav_rest_orders_df[
-                    fav_rest_orders_df["city"] == "New York"]["amount"].max()))
-    col2.metric(label='San Francisco',
-                value=sf_fav_rest_orders,
-                delta='{:,} orders'.format(
-                    fav_rest_orders_df[fav_rest_orders_df["city"] ==
-                                       "San Francisco"]["amount"].max()))
-
-
-def fav_rest_revenue(df):
-
-    fav_rest_revenue_df = df.groupby(['city', 'rest_name'],
-                                     as_index=False)['revenue'].sum()
-
-    ny_fav_rest_revenue = fav_rest_revenue_df.loc[
-        (fav_rest_revenue_df["city"] == "New York") &
-        (fav_rest_revenue_df['revenue'] == fav_rest_revenue_df.loc[
-            fav_rest_revenue_df["city"] == "New York"]['revenue'].max()),
-        "rest_name"].iloc[0]
-
-    sf_fav_rest_revenue = fav_rest_revenue_df.loc[
-        (fav_rest_revenue_df["city"] == "San Francisco") &
-        (fav_rest_revenue_df['revenue'] == fav_rest_revenue_df.loc[
-            fav_rest_revenue_df["city"] == "San Francisco"]['revenue'].max()),
-        "rest_name"].iloc[0]
-
-    # By revenue
-    st.markdown('**Revenue**')
-
-    col1, col2 = st.columns(2)
-    col1.metric(label='New York',
-                value=ny_fav_rest_revenue,
-                delta='${:,}'.format(
-                    fav_rest_revenue_df[fav_rest_revenue_df["city"] ==
-                                        "New York"]["revenue"].max()))
-    col2.metric(label='San Francisco',
-                value=sf_fav_rest_revenue,
-                delta='${:,}'.format(
-                    fav_rest_revenue_df[fav_rest_revenue_df["city"] ==
-                                        "San Francisco"]["revenue"].max()))
-
-
-# Code Refactoring - TBD
-def fav_dish(df, by_type, city):
-
-    fav_dish_df = df.groupby(['city', 'dish_name'],
-                             as_index=False)[by_type].sum()
+def fav_dish(fav_dish_df, by_type, city):
 
     fav_dish_city = fav_dish_df.loc[(fav_dish_df["city"] == city) & (
         fav_dish_df[by_type] == fav_dish_df.loc[
             fav_dish_df["city"] == city][by_type].max()), "dish_name"].iloc[0]
 
+    return fav_dish_city
+
+
+def fav_rest(fav_rest_df, by_type, city):
+
+    fav_rest_city = fav_rest_df.loc[(fav_rest_df["city"] == city) & (
+        fav_rest_df[by_type] == fav_rest_df.loc[
+            fav_rest_df["city"] == city][by_type].max()), "rest_name"].iloc[0]
+
+    return fav_rest_city
+
+
+def plot_order_data(fav_dish_df, fav_dish_city_ny, fav_dish_city_sf, by_type):
+    col1, col2 = st.columns(2)
+    col1.metric(
+        label='New York',
+        value=fav_dish_city_ny,
+        delta='{:,} orders'.format(
+            fav_dish_df[fav_dish_df["city"] == "New York"][by_type].max()))
+    col2.metric(label='San Francisco',
+                value=fav_dish_city_sf,
+                delta='{:,} orders'.format(fav_dish_df[
+                    fav_dish_df["city"] == "San Francisco"][by_type].max()))
+
+
+def plot_revenue_data(fav_dish_df, fav_dish_city_ny, fav_dish_city_sf,
+                      by_type):
+    col1, col2 = st.columns(2)
+    col1.metric(
+        label='New York',
+        value=fav_dish_city_ny,
+        delta='${:,}'.format(
+            fav_dish_df[fav_dish_df["city"] == "New York"][by_type].max()))
+    col2.metric(label='San Francisco',
+                value=fav_dish_city_sf,
+                delta='${:,}'.format(fav_dish_df[
+                    fav_dish_df["city"] == "San Francisco"][by_type].max()))
+
+
+def allergy_info(cust_db, allergies):
+
+    allergies_count = []
+
+    for allergy in allergies:
+        allergies_count.append(cust_db[allergy].sum())
+
+    allergy_df = pd.DataFrame({
+        "Allergies": allergies,
+        "Number of People Suffering": allergies_count
+    })
+
+    allergy_df = allergy_df.sort_values(by=['Number of People Suffering'])
+
+    fig = px.bar(allergy_df, x="Allergies", y="Number of People Suffering")
+    fig.update_traces(marker_color='RoyalBlue')
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def allergy_food_orders(df, allergy_choice):
+
+    # Top 5 dishes ordered by a person with chosen allergy
+    top_5_dishes_ord = df[df[allergy_choice] == 1.0].groupby(
+        'dish_name')['amount'].sum().sort_values(
+            ascending=False).head(5).reset_index()
+
+    # Plot graph
+    fig = px.bar(top_5_dishes_ord, x="dish_name", y="amount")
+    fig.update_traces(marker_color='RoyalBlue')
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def allergy_food_revenue(df, allergy_choice):
+
+    # Top 5 dishes ordered by a person with chosen allergy
+    top_5_dishes_rev = df[df[allergy_choice] == 1.0].groupby(
+        'dish_name')['revenue'].sum().sort_values(
+            ascending=False).head(5).reset_index()
+
+    # Plot graph
+    fig = px.bar(top_5_dishes_rev, x="dish_name", y="revenue")
+    fig.update_traces(marker_color='RoyalBlue')
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def allergy_rest_revenue(df, allergy_choice):
+    # Top 5 restaurants ordered by a person with chosen allergy
+    top_5_dishes_rev = df[df[allergy_choice] == 1.0].groupby(
+        'rest_name')['revenue'].sum().sort_values(
+            ascending=False).head(5).reset_index()
+
+    # Plot graph
+    fig = px.bar(top_5_dishes_rev, x="rest_name", y="revenue")
+    fig.update_traces(marker_color='RoyalBlue')
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def rest_revenue_from_allergy(df, allergy_choice, rest_choice):
+    all_rest_allergy = df[df[allergy_choice] == 1.0].groupby(
+        'rest_name')['revenue'].sum().sort_values(
+            ascending=False).reset_index()
+    rest_rev_allergy = all_rest_allergy[all_rest_allergy['rest_name'] ==
+                                        rest_choice]
+
+    st.write(rest_rev_allergy)
+
 
 def main():
     if __name__ == '__main__':
-        df = pd.read_csv('data/full_table_v0.4.csv', index_col=0)
+        df = pd.read_csv('data/full_table.csv', index_col=0)
 
         st.title("Restaurant Dashboard")
 
-        st.subheader("General Insights")
-        general_insights(df)
+        st.subheader("Global Insights")
+        global_insights(df)
 
         # Favourite dish
-        st.markdown('**Favourite Dish**')
-        fav_dish_orders(df)
-        fav_dish_revenue(df)
-        #fav_dish(df, "amount", "New York")
+        st.write("#")
+        st.markdown('### Most Popular Dish')
+
+        # No. of orders
+        st.markdown('**Number of orders**')
+        fav_dish_df_ord = df.groupby(['city', 'dish_name'],
+                                     as_index=False)["amount"].sum()
+        fav_dish_city_ny_ord = fav_dish(fav_dish_df_ord, "amount", "New York")
+        fav_dish_city_sf_ord = fav_dish(fav_dish_df_ord, "amount",
+                                        "San Francisco")
+        plot_order_data(fav_dish_df_ord, fav_dish_city_ny_ord,
+                        fav_dish_city_sf_ord, "amount")
+
+        # Revenue
+        st.markdown('**Revenue**')
+        fav_dish_df_rev = df.groupby(['city', 'dish_name'],
+                                     as_index=False)["revenue"].sum()
+        fav_dish_city_ny_rev = fav_dish(fav_dish_df_rev, "revenue", "New York")
+        fav_dish_city_sf_rev = fav_dish(fav_dish_df_rev, "revenue",
+                                        "San Francisco")
+        plot_revenue_data(fav_dish_df_rev, fav_dish_city_ny_rev,
+                          fav_dish_city_sf_rev, "revenue")
 
         # Favourite restaurant
-        st.markdown('**Favourite Restaurant**')
-        fav_rest_orders(df)
-        fav_rest_revenue(df)
+        st.write("#")
+        st.markdown('### Most Popular Restaurant')
+
+        # No. of orders
+        st.markdown('**Number of orders**')
+        fav_rest_df_ord = df.groupby(['city', 'rest_name'],
+                                     as_index=False)["amount"].sum()
+        fav_rest_city_ny_ord = fav_rest(fav_rest_df_ord, "amount", "New York")
+        fav_rest_city_sf_ord = fav_rest(fav_rest_df_ord, "amount",
+                                        "San Francisco")
+        plot_order_data(fav_rest_df_ord, fav_rest_city_ny_ord,
+                        fav_rest_city_sf_ord, "amount")
+
+        # Revenue
+        st.markdown('**Revenue**')
+        fav_rest_df_rev = df.groupby(['city', 'rest_name'],
+                                     as_index=False)["revenue"].sum()
+        fav_rest_city_ny_rev = fav_rest(fav_rest_df_rev, "revenue", "New York")
+        fav_rest_city_sf_rev = fav_rest(fav_rest_df_rev, "revenue",
+                                        "San Francisco")
+        plot_revenue_data(fav_rest_df_rev, fav_rest_city_ny_rev,
+                          fav_rest_city_sf_rev, "revenue")
+
+        # Allergy Information
+        st.write('#')
+        st.markdown('### Allergies')
+        st.write('Allergies v/s Number of People Suffering')
+        cust_db = pd.read_csv('data/complete_customer_database.csv',
+                              index_col=0)
+
+        # Create a list of all allergies
+        allergies = cust_db.drop(['customer_id'], axis=1).columns.tolist()
+
+        allergy_info(cust_db, allergies)
+
+        # Allergy Food Ordering
+        st.write('#')
+
+        # Dropdown for user to choose allergy
+        allergy_choice = st.selectbox(label='Choose an allergy',
+                                      options=allergies)
+        st.markdown('#### Top 5 Dishes Ordered by Allergy')
+        st.write("Dishes v/s Amount of Times Ordered")
+        allergy_food_orders(df, allergy_choice)
+        st.write("###")
+        st.write("Dishes v/s Revenue Generated")
+        allergy_food_revenue(df, allergy_choice)
+        st.write("###")
+
+        st.markdown('#### Top 5 Restaurants Based on Allergy')
+        st.write("Restaurants v/s Revenue Generated")
+        allergy_rest_revenue(df, allergy_choice)
 
         df_rest = pd.read_csv('data/ODL_RESTAURANT.csv', usecols=['name'])
         df_rest.loc[len(df_rest.index)] = '(All)'
@@ -203,8 +245,7 @@ def main():
         rest_choice = st.selectbox(label='Choose a restaurant',
                                    options=df_rest)
 
-        st.write(rest_choice)
-
+        rest_revenue_from_allergy(df, allergy_choice, rest_choice)
         # Revenue Maximization
         st.subheader("Revenue Maximization")
 
