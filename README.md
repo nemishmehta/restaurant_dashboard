@@ -13,10 +13,11 @@ The project has been coded in Python 3.8.10 and can be run with a Jupyter notebo
 ## Usage
 
 1. Navigate to the directory where the files have been cloned.
-2. Open 'merge_tables_in_one.ipynb' and run the notebook to get one full csv file. 
-3. Type - `streamlit run main.py` to run the project. --> This should open an interface on your browser.
-4. The dashboard will be visible on the interface.
-5. Navigate through the dashboard and select options based on preferences.
+2. Create a directory called 'data' and upload csv files of database.
+3. Open 'merge_tables_in_one.ipynb' and run the notebook to get one full csv file. 
+4. Type - `streamlit run main.py` to run the project. --> This should open an interface on your browser.
+5. The dashboard will be visible on the interface.
+6. Navigate through the dashboard and select options based on preferences.
 
 ## Future Releases (To-do)
 1. Optimize codebase.
