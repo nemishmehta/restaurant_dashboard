@@ -7,7 +7,7 @@ As the name suggests, this repository enables an individual to visualize a dashb
 The project has been coded in Python 3.8.10 and can be run with a Jupyter notebook and on the terminal. Given below are a set of instructions to access the project:
 
 1. Install [Python](https://realpython.com/installing-python/) (if not installed already).
-2. Install [pandas](https://pandas.pydata.org/docs/getting_started/install.html) and [streamlit](https://docs.streamlit.io/library/get-started/installation) libraries.
+2. Install [pandas](https://pandas.pydata.org/docs/getting_started/install.html), [streamlit](https://docs.streamlit.io/library/get-started/installation) and [pydeck](https://pydeck.gl/installation.html) libraries.
 3. Clone the repository to your local machine.
 
 ## Usage
