@@ -1,30 +1,33 @@
 def heatmap():
     df = pd.read_csv('ODL_RESTAURANT.csv', sep=',', index_col=0)
 
+    streets = []
+    for street in df['street']:
+        for l in street:
+            if l == "-":
+                head, sep, tail = street.partition('-')
+                streets.append(tail)
+            else:
+                streets.append(street)
+
     from geopy.geocoders import Nominatim
     locator = Nominatim(user_agent="myGeocoder")
     lat = []
-    streets = []
     cities = []
     lon = []
-    zip=[]
-    for street in df['street']:
+    for street in streets:
         if locator.geocode(f"{street} SF", timeout=10000) != None:
             cities.append("San Francisco")
             location = locator.geocode(f"{street} SF", timeout=10000)
             lat.append(location.latitude)
             lon.append(location.longitude)
-            zip.append(get_zipcode(location.latitude,location.longitude))
-            streets.append(street)
 
         elif locator.geocode(f"{street} NYC", timeout=10000) != None:
             cities.append('New York')
             location = locator.geocode(f"{street} NYC", timeout=10000)
             lat.append(location.latitude)
             lon.append(location.longitude)
-            zip.append(get_zipcode(location.latitude,location.longitude))
-            streets.append(street)
-
+            
     count = 0
     freq = []
     mg=pd.read_csv('full_table_v0.3.csv', sep=',', index_col=0)
