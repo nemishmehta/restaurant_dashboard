@@ -1,8 +1,5 @@
-import altair as alt
-import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
-import seaborn as sns
 import streamlit as st
 
 
@@ -101,46 +98,39 @@ def allergy_info(cust_db, allergies):
 
     allergy_df = allergy_df.sort_values(by=['Number of People Suffering'])
 
-    fig = px.bar(allergy_df, x="Allergies", y="Number of People Suffering")
-    fig.update_traces(marker_color='RoyalBlue')
+    fig = px.bar(allergy_df,
+                 x="Allergies",
+                 y="Number of People Suffering",
+                 color="Number of People Suffering")
     st.plotly_chart(fig, use_container_width=True)
 
 
-def allergy_food_orders(df, allergy_choice):
+def allergy_food_orders(df, allergy_choice, by_choice_allergy):
 
     # Top 5 dishes ordered by a person with chosen allergy
     top_5_dishes_ord = df[df[allergy_choice] == 1.0].groupby(
-        'dish_name')['amount'].sum().sort_values(
+        'dish_name')[by_choice_allergy].sum().sort_values(
             ascending=False).head(5).reset_index()
 
     # Plot graph
-    fig = px.bar(top_5_dishes_ord, x="dish_name", y="amount")
-    fig.update_traces(marker_color='RoyalBlue')
+    fig = px.bar(top_5_dishes_ord,
+                 x="dish_name",
+                 y=by_choice_allergy,
+                 color=by_choice_allergy)
     st.plotly_chart(fig, use_container_width=True)
 
 
-def allergy_food_revenue(df, allergy_choice):
-
-    # Top 5 dishes ordered by a person with chosen allergy
-    top_5_dishes_rev = df[df[allergy_choice] == 1.0].groupby(
-        'dish_name')['revenue'].sum().sort_values(
-            ascending=False).head(5).reset_index()
-
-    # Plot graph
-    fig = px.bar(top_5_dishes_rev, x="dish_name", y="revenue")
-    fig.update_traces(marker_color='RoyalBlue')
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def allergy_rest_revenue(df, allergy_choice):
+def allergy_rest_revenue(df, allergy_choice, by_choice_allergy):
     # Top 5 restaurants ordered by a person with chosen allergy
     top_5_dishes_rev = df[df[allergy_choice] == 1.0].groupby(
-        'rest_name')['revenue'].sum().sort_values(
+        'rest_name')[by_choice_allergy].sum().sort_values(
             ascending=False).head(5).reset_index()
 
     # Plot graph
-    fig = px.bar(top_5_dishes_rev, x="rest_name", y="revenue")
-    fig.update_traces(marker_color='RoyalBlue')
+    fig = px.bar(top_5_dishes_rev,
+                 x="rest_name",
+                 y=by_choice_allergy,
+                 color=by_choice_allergy)
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -154,50 +144,141 @@ def rest_revenue_from_allergy(df, allergy_choice, rest_choice):
     st.write(rest_rev_allergy)
 
 
-def general_time_trend(unstacked_gtb):
-    df = unstacked_gtb
-    fig = plt.figure(figsize=(12, 8), dpi=100)
-    sns.barplot(data=df, x="order_creation_date", y="order_id")
-    plt.title("General Orders Trend Through Time")
-    plt.tick_params(axis='x',
-                    which='both',
-                    bottom=False,
-                    top=False,
-                    labelbottom=False)
-    plt.xlabel("Time")
-    plt.ylabel("Amount of Orders")
-    st.pyplot(fig)
-
-
-def general_revenue_trend(unstacked_grb):
-    fig = plt.figure(figsize=(12, 8), dpi=100)
-    sns.barplot(data=unstacked_grb, x="order_creation_date", y="revenue")
-    plt.title("General Revenue Trend Through Time")
-    plt.tick_params(axis='x',
-                    which='both',
-                    bottom=False,
-                    top=False,
-                    labelbottom=False)
-    plt.xlabel("Time")
-    plt.ylabel("Revenue")
-    st.pyplot(fig)
-
-
-def trends(df, rest_choice, category):
+def trends(df, rest_choice, category, by_type):
     if rest_choice == '(All)':
         # Plot graph
-        total_rev = df.groupby(category)['revenue'].sum().sort_values(
+        total_rev = df.groupby(category)[by_type].sum().sort_values(
             ascending=False).reset_index()
-        fig = px.bar(total_rev, x=category, y="revenue")
-        fig.update_traces(marker_color='RoyalBlue')
+        fig = px.bar(total_rev, x=category, y=by_type, color=by_type)
         st.plotly_chart(fig, use_container_width=True)
     else:
         total_rev = df.groupby([
             'rest_name', category
-        ])['revenue'].sum().sort_values(ascending=False).reset_index()
+        ])[by_type].sum().sort_values(ascending=False).reset_index()
         rest_rev = total_rev[total_rev['rest_name'] == rest_choice]
-        fig = px.bar(rest_rev, x=category, y="revenue")
-        fig.update_traces(marker_color='RoyalBlue')
+        fig = px.bar(rest_rev, x=category, y=by_type, color=by_type)
+        st.plotly_chart(fig, use_container_width=True)
+
+
+def rest_vs_all(df, rest_choice, by_type):
+
+    if rest_choice == '(All)':
+        st.markdown("##### Total {}: {:,}".format(by_type,
+                                                  df[by_type].sum().round(0)))
+        st.markdown(
+            "##### Total {} v/s Total {} by all restaurants: {}%".format(
+                by_type, by_type,
+                (df[by_type].sum() / df[by_type].sum()) * 100))
+    else:
+        st.markdown("##### Total {}: {:,}".format(
+            by_type,
+            df[df['rest_name'] == rest_choice][by_type].sum().round(0)))
+        st.markdown(
+            "##### Total {} v/s Total {} by all restaurants: {}%".format(
+                by_type, by_type,
+                ((df[df['rest_name'] == rest_choice][by_type].sum() /
+                  df[by_type].sum()) * 100).round(2)))
+
+
+def loyalty_prog(df, rest_choice, by_type):
+    if rest_choice == '(All)':
+        loyality_count = df['customer_id'].value_counts().rename_axis(
+            'customer_id').reset_index(name=by_type)
+        loyality_count = loyality_count.head(int(len(loyality_count) * 0.01))
+        loyality_count['customer_id'] = loyality_count['customer_id'].astype(
+            str)
+        fig = px.bar(loyality_count,
+                     x=by_type,
+                     y='customer_id',
+                     orientation='h',
+                     color=by_type)
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        loyality_count = df.groupby([
+            'rest_name', 'customer_id'
+        ])[by_type].sum().sort_values(ascending=False).reset_index()
+        loyality_cust = loyality_count[loyality_count['rest_name'] ==
+                                       rest_choice]
+        loyality_cust = loyality_cust.head(int(len(loyality_cust) * 0.01))
+        loyality_cust['customer_id'] = loyality_cust['customer_id'].astype(str)
+        fig = px.bar(loyality_cust,
+                     x=by_type,
+                     y='customer_id',
+                     orientation='h',
+                     color=by_type)
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+
+
+def disc_prog(df, rest_choice, by_type):
+    if rest_choice == '(All)':
+        disc_count = df['customer_id'].value_counts().rename_axis(
+            'customer_id').reset_index(name=by_type)
+        disc_count = disc_count.tail(int(len(disc_count) * 0.01))
+        disc_count['customer_id'] = disc_count['customer_id'].astype(str)
+        fig = px.bar(disc_count,
+                     x=by_type,
+                     y='customer_id',
+                     orientation='h',
+                     color=by_type)
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        disc_count = df.groupby([
+            'rest_name', 'customer_id'
+        ])[by_type].sum().sort_values(ascending=False).reset_index()
+        disc_cust = disc_count[disc_count['rest_name'] == rest_choice]
+        disc_cust = disc_cust.tail(int(len(disc_cust) * 0.01))
+        disc_cust['customer_id'] = disc_cust['customer_id'].astype(str)
+        fig = px.bar(disc_cust,
+                     x=by_type,
+                     y='customer_id',
+                     orientation='h',
+                     color=by_type)
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+
+
+def best_seller(df, rest_choice, by_type):
+    if rest_choice == '(All)':
+        st.markdown("##### Top 10% Best Selling Dishes")
+        best_seller_df = df.groupby('dish_name')[by_type].sum().sort_values(
+            ascending=False).reset_index()
+        best_seller_df = best_seller_df.head(int(len(best_seller_df) * 0.01))
+        fig = px.bar(best_seller_df, x='dish_name', y=by_type, color=by_type)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.markdown("##### Best Selling Dishes")
+        best_seller_df = df.groupby([
+            'rest_name', 'dish_name'
+        ])[by_type].sum().sort_values(ascending=False).reset_index()
+        best_seller_rest = best_seller_df[best_seller_df['rest_name'] ==
+                                          rest_choice]
+        fig = px.bar(best_seller_rest, x='dish_name', y=by_type, color=by_type)
+        st.plotly_chart(fig, use_container_width=True)
+
+
+def least_seller(df, rest_choice, by_type):
+    if rest_choice == '(All)':
+        st.markdown("##### Top 10% Least Selling Dishes")
+        least_seller_df = df.groupby('dish_name')[by_type].sum().sort_values(
+            ascending=True).reset_index()
+        least_seller_df = least_seller_df.head(int(
+            len(least_seller_df) * 0.01))
+        fig = px.bar(least_seller_df, x='dish_name', y=by_type, color=by_type)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.markdown("##### Least Selling Dishes")
+        least_seller_df = df.groupby([
+            'rest_name', 'dish_name'
+        ])[by_type].sum().sort_values(ascending=True).reset_index()
+        least_seller_rest = least_seller_df[least_seller_df['rest_name'] ==
+                                            rest_choice]
+        fig = px.bar(least_seller_rest,
+                     x='dish_name',
+                     y=by_type,
+                     color=by_type)
         st.plotly_chart(fig, use_container_width=True)
 
 
@@ -205,14 +286,14 @@ def main():
     if __name__ == '__main__':
         df = pd.read_csv('data/full_table.csv', index_col=0)
 
-        st.title("Restaurant Dashboard")
+        st.title("Food Delivery Dashboard")
 
         st.subheader("Global Insights")
         global_insights(df)
 
         # Favourite dish
         st.write("#")
-        st.markdown('### Most Popular Dish')
+        st.markdown('#### Most Popular Dish')
 
         # No. of orders
         st.markdown('**Number of orders**')
@@ -236,7 +317,7 @@ def main():
 
         # Favourite restaurant
         st.write("#")
-        st.markdown('### Most Popular Restaurant')
+        st.markdown('#### Most Popular Restaurant')
 
         # No. of orders
         st.markdown('**Number of orders**')
@@ -258,10 +339,61 @@ def main():
         plot_revenue_data(fav_rest_df_rev, fav_rest_city_ny_rev,
                           fav_rest_city_sf_rev, "revenue")
 
+        df_rest = pd.read_csv('data/ODL_RESTAURANT.csv', usecols=['name'])
+        df_rest.loc[len(df_rest.index)] = '(All)'
+        df_rest = df_rest.sort_values(by=['name'], ignore_index=True)
+
+        st.write("#")
+        st.markdown("### Deep Dive")
+        rest_choice = st.selectbox(label='Choose a restaurant',
+                                   options=df_rest)
+        by_type_choice = st.selectbox(label='Select type',
+                                      options=("amount", "revenue"),
+                                      key=1)
+
+        st.write("#")
+        st.markdown("#### Restaurant Overview")
+        rest_vs_all(df, rest_choice, by_type_choice)
+
+        # Revenue Maximization
+        st.write("#")
+        st.subheader("Revenue Maximization")
+        st.markdown(
+            f"##### Loyalty Programs to Top 1% Customers by {by_type_choice}")
+        loyalty_prog(df, rest_choice, by_type_choice)
+
+        st.markdown(
+            f"##### Discount Offers to Bottom 1% Customers by {by_type_choice}"
+        )
+        disc_prog(df, rest_choice, by_type_choice)
+
+        #st.write("INSERT GRAPH FOR CUSTOMER ORDERING PATTERNS")
+
+        #st.write("INSERT GRAPH FOR COMPETITOR RESTAURANTS")
+
+        # Cost Optimization
+        st.subheader("Cost Optimization")
+
+        st.write("##### Restaurant v/s Period of Day")
+        trends(df, rest_choice, "period", by_type_choice)
+
+        st.write("##### Restaurant v/s Day of the Week")
+        trends(df, rest_choice, "order_day", by_type_choice)
+
+        st.write("##### Restaurant v/s Season")
+        trends(df, rest_choice, "order_season", by_type_choice)
+
+        best_seller(df, rest_choice, by_type_choice)
+
+        least_seller(df, rest_choice, by_type_choice)
+
+        # st.write(
+        #     "INSERT GRAPH FOR IMPACT ON REVENUE IF LEAST SELLING DISHES ARE DISCARDED"
+        # )
         # Allergy Information
         st.write('#')
         st.markdown('### Allergies')
-        st.write('Allergies v/s Number of People Suffering')
+        st.write('##### Allergies v/s Number of People Suffering')
         cust_db = pd.read_csv('data/complete_customer_database.csv',
                               index_col=0)
 
@@ -276,74 +408,18 @@ def main():
         # Dropdown for user to choose allergy
         allergy_choice = st.selectbox(label='Choose an allergy',
                                       options=allergies)
+        by_type_choice_allergy = st.selectbox(label='Select type',
+                                              options=("amount", "revenue"),
+                                              key=2)
         st.markdown('#### Top 5 Dishes Ordered by Allergy')
-        st.write("Dishes v/s Amount of Times Ordered")
-        allergy_food_orders(df, allergy_choice)
-        st.write("###")
-        st.write("Dishes v/s Revenue Generated")
-        allergy_food_revenue(df, allergy_choice)
-        st.write("###")
+        st.write(f"##### Dishes v/s {by_type_choice_allergy}")
+        allergy_food_orders(df, allergy_choice, by_type_choice_allergy)
 
         st.markdown('#### Top 5 Restaurants Based on Allergy')
-        st.write("Restaurants v/s Revenue Generated")
-        allergy_rest_revenue(df, allergy_choice)
+        st.write(f"##### Restaurants v/s {by_type_choice_allergy}")
+        allergy_rest_revenue(df, allergy_choice, by_type_choice_allergy)
 
-        df_rest = pd.read_csv('data/ODL_RESTAURANT.csv', usecols=['name'])
-        df_rest.loc[len(df_rest.index)] = '(All)'
-        df_rest = df_rest.sort_values(by=['name'], ignore_index=True)
-
-        rest_choice = st.selectbox(label='Choose a restaurant',
-                                   options=df_rest)
-
-        rest_revenue_from_allergy(df, allergy_choice, rest_choice)
-
-        # # Order trends across dataset timeline
-        # GENERAL_TIME_BARS = pd.DataFrame(
-        #     df.groupby(["order_creation_date"])["order_id"].count())
-        # UNSTACKED_GTB = GENERAL_TIME_BARS.reset_index()
-        # general_time_trend(UNSTACKED_GTB)
-
-        # # Revenue trends across dataset timeline
-        # GENERAL_REVENUE_BARS = pd.DataFrame(
-        #     df.groupby(["order_creation_date"])["revenue"].sum())
-        # UNSTACKED_GRB = GENERAL_REVENUE_BARS.reset_index()
-        # general_revenue_trend(UNSTACKED_GRB)
-
-        # Revenue Maximization
-        st.subheader("Revenue Maximization")
-
-        st.write("INSERT GRAPH FOR TOTAL REVENUE GENERATED")
-
-        st.write("INSERT GRAPH FOR AVG. REVENUE/ORDER")
-
-        st.write(
-            "INSERT GRAPH FOR MOST FREQUENT CUSTOMERS --> LOYALTY PROGRAM")
-
-        st.write("INSERT GRAPH FOR LEAST FREQUENT CUSTOMERS --> DISCOUNTS")
-
-        st.write("INSERT GRAPH FOR CUSTOMER ORDERING PATTERNS")
-
-        st.write("INSERT GRAPH FOR COMPETITOR RESTAURANTS")
-
-        # Cost Optimization
-        st.subheader("Cost Optimization")
-
-        st.write("INSERT GRAPH FOR ORDER TIMING TRENDS")
-        trends(df, rest_choice, "period")
-
-        st.write("INSERT GRAPH FOR ORDER DAY TRENDS")
-        trends(df, rest_choice, "order_day")
-
-        st.write("INSERT GRAPH FOR ORDER SEASONAL TRENDS")
-        trends(df, rest_choice, "order_season")
-
-        st.write("INSERT GRAPH FOR BEST SELLING DISHES")
-
-        st.write("INSERT GRAPH FOR LEAST SELLING DISHES")
-
-        st.write(
-            "INSERT GRAPH FOR IMPACT ON REVENUE IF LEAST SELLING DISHES ARE DISCARDED"
-        )
+        #rest_revenue_from_allergy(df, allergy_choice, rest_choice)
 
 
 main()
