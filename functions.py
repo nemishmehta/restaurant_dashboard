@@ -66,7 +66,8 @@ def not_selling():
     indexes = []
     for name in name_list:
         if name != name_list[i]:
-            indexes.append(i)
+            if name_list[i]==name_list[i+1]:
+                indexes.append(i)
         i += 1
         if i == 8126:
             break
