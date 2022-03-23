@@ -14,7 +14,8 @@ def heatmap():
     locator = Nominatim(user_agent="myGeocoder")
     lat = []
     cities = []
-    lon = []
+    lon= []
+
     for street in streets:
         if locator.geocode(f"{street} SF", timeout=10000) != None:
             cities.append("San Francisco")
@@ -41,6 +42,93 @@ def heatmap():
 
     heat_map = pd.DataFrame({'lat': lat, 'lon':lon, 'street_names': streets, 'count': freq, 'cities':cities})
     heat_map = heat_map.sort_values(by='cities', ascending=True)
+    city=heat_map['cities']
+    rep=heat_map['count']
+    ind=0
+
+    for i in city:
+        if i!=city[city.index(i)+1]:
+            ind=city.index(i)+1
+            break
+
+    ny_lat=[]
+    ny_lon=[]
+    sf_lat=[]
+    sf_lon=[]
+    i=0
+    for count in rep:
+        if rep.index(count)>=ind:
+            for n in count:
+                sf_lat.append(lat[i])
+                sf_lon.append(lon[i])
+        else:
+            for n in count:
+                ny_lat.append(lat[i])
+                ny_lon.append(lon[i])
+        i+=1
+    ny_df=pd.DataFrame({'lat': ny_lat, 'lon':ny_lon})
+    sf_df=pd.DataFrame({'lat': sf_lat, 'lon':sf_lon})
+
+    st.pydeck_chart(pdk.Deck(
+        map_style='mapbox://styles/mapbox/light-v9',
+        initial_view_state=pdk.ViewState(
+            latitude=37.76,
+            longitude=-122.4,
+            zoom=11,
+            pitch=50,
+        ),
+        layers=[
+            pdk.Layer(
+                'HexagonLayer',
+                data=ny_df,
+                get_position='[lon, lat]',
+                radius=200,
+                elevation_scale=4,
+                elevation_range=[0, 1000],
+                pickable=True,
+                extruded=True,
+            ),
+            pdk.Layer(
+                'ScatterplotLayer',
+                data=ny_df,
+                get_position='[lon, lat]',
+                get_color='[200, 30, 0, 160]',
+                get_radius=200,
+            ),
+        ],
+    ))
+
+    st.pydeck_chart(pdk.Deck(
+        map_style='mapbox://styles/mapbox/light-v9',
+        initial_view_state=pdk.ViewState(
+            latitude=37.7749295,
+            longitude=-122.4194155,
+            zoom=11,
+            pitch=50,
+        ),
+        layers=[
+            pdk.Layer(
+                'HexagonLayer',
+                data=sf_df,
+                get_position='[lon, lat]',
+                radius=200,
+                elevation_scale=4,
+                elevation_range=[0, 1000],
+                pickable=True,
+                extruded=True,
+            ),
+            pdk.Layer(
+                'ScatterplotLayer',
+                data=sf_df,
+                get_position='[lon, lat]',
+                get_color='[200, 30, 0, 160]',
+                get_radius=200,
+            ),
+        ],
+    ))
+
+
+
 
 def revenue_cent():
     df = pd.read_csv('full_table_v0.3.csv', sep=',', index_col=0)
