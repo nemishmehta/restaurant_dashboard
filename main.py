@@ -180,62 +180,122 @@ def rest_vs_all(df, rest_choice, by_type):
                   df[by_type].sum()) * 100).round(2)))
 
 
-def loyalty_prog(df, rest_choice, by_type):
+def loyalty_prog_ord(df, rest_choice):
     if rest_choice == '(All)':
         loyality_count = df['customer_id'].value_counts().rename_axis(
-            'customer_id').reset_index(name=by_type)
+            'customer_id').reset_index(name='amount')
         loyality_count = loyality_count.head(int(len(loyality_count) * 0.01))
         loyality_count['customer_id'] = loyality_count['customer_id'].astype(
             str)
         fig = px.bar(loyality_count,
-                     x=by_type,
+                     x='amount',
                      y='customer_id',
                      orientation='h',
-                     color=by_type)
+                     color='amount')
         fig.update_yaxes(autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
     else:
         loyality_count = df.groupby([
             'rest_name', 'customer_id'
-        ])[by_type].sum().sort_values(ascending=False).reset_index()
+        ])['amount'].sum().sort_values(ascending=False).reset_index()
         loyality_cust = loyality_count[loyality_count['rest_name'] ==
                                        rest_choice]
         loyality_cust = loyality_cust.head(int(len(loyality_cust) * 0.01))
         loyality_cust['customer_id'] = loyality_cust['customer_id'].astype(str)
         fig = px.bar(loyality_cust,
-                     x=by_type,
+                     x='amount',
                      y='customer_id',
                      orientation='h',
-                     color=by_type)
+                     color='amount')
         fig.update_yaxes(autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
 
 
-def disc_prog(df, rest_choice, by_type):
+def disc_prog_ord(df, rest_choice):
     if rest_choice == '(All)':
         disc_count = df['customer_id'].value_counts().rename_axis(
-            'customer_id').reset_index(name=by_type)
+            'customer_id').reset_index(name='amount')
         disc_count = disc_count.tail(int(len(disc_count) * 0.01))
         disc_count['customer_id'] = disc_count['customer_id'].astype(str)
         fig = px.bar(disc_count,
-                     x=by_type,
+                     x='amount',
                      y='customer_id',
                      orientation='h',
-                     color=by_type)
+                     color='amount')
         fig.update_yaxes(autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
     else:
         disc_count = df.groupby([
             'rest_name', 'customer_id'
-        ])[by_type].sum().sort_values(ascending=False).reset_index()
+        ])['amount'].sum().sort_values(ascending=False).reset_index()
         disc_cust = disc_count[disc_count['rest_name'] == rest_choice]
         disc_cust = disc_cust.tail(int(len(disc_cust) * 0.01))
         disc_cust['customer_id'] = disc_cust['customer_id'].astype(str)
         fig = px.bar(disc_cust,
-                     x=by_type,
+                     x='amount',
                      y='customer_id',
                      orientation='h',
-                     color=by_type)
+                     color='amount')
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+
+
+def loyalty_prog_rev(df, rest_choice):
+    if rest_choice == '(All)':
+        loyality_count = df.groupby('customer_id')['revenue'].sum(
+        ).sort_values(ascending=False).reset_index()
+        loyality_count = loyality_count.head(int(len(loyality_count) * 0.01))
+        loyality_count['customer_id'] = loyality_count['customer_id'].astype(
+            str)
+        fig = px.bar(loyality_count,
+                     x='revenue',
+                     y='customer_id',
+                     orientation='h',
+                     color='revenue')
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        loyality_count = df.groupby([
+            'rest_name', 'customer_id'
+        ])['revenue'].sum().sort_values(ascending=False).reset_index()
+        loyality_cust = loyality_count[loyality_count['rest_name'] ==
+                                       rest_choice]
+        loyality_cust = loyality_cust.head(int(len(loyality_cust) * 0.01))
+        loyality_cust['customer_id'] = loyality_cust['customer_id'].astype(str)
+        fig = px.bar(loyality_cust,
+                     x='revenue',
+                     y='customer_id',
+                     orientation='h',
+                     color='revenue')
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+
+
+def disc_prog_rev(df, rest_choice):
+    if rest_choice == '(All)':
+        disc_count = df.groupby('customer_id')['revenue'].sum().sort_values(
+            ascending=False).reset_index()
+        disc_count = disc_count.tail(int(len(disc_count) * 0.01))
+        disc_count['customer_id'] = disc_count['customer_id'].astype(str)
+        fig = px.bar(disc_count,
+                     x='revenue',
+                     y='customer_id',
+                     orientation='h',
+                     color='revenue')
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        disc_count = df.groupby([
+            'rest_name', 'customer_id'
+        ])['revenue'].sum().sort_values(ascending=False).reset_index()
+        disc_cust = disc_count[disc_count['rest_name'] == rest_choice]
+        disc_cust = disc_cust.tail(int(len(disc_cust) * 0.01))
+        disc_cust['customer_id'] = disc_cust['customer_id'].astype(str)
+        fig = px.bar(disc_cust,
+                     x='revenue',
+                     y='customer_id',
+                     orientation='h',
+                     color='revenue')
         fig.update_yaxes(autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
 
@@ -360,12 +420,18 @@ def main():
         st.subheader("Revenue Maximization")
         st.markdown(
             f"##### Loyalty Programs to Top 1% Customers by {by_type_choice}")
-        loyalty_prog(df, rest_choice, by_type_choice)
+        if by_type_choice == 'amount':
+            loyalty_prog_ord(df, rest_choice)
+        else:
+            loyalty_prog_rev(df, rest_choice)
 
         st.markdown(
             f"##### Discount Offers to Bottom 1% Customers by {by_type_choice}"
         )
-        disc_prog(df, rest_choice, by_type_choice)
+        if by_type_choice == 'amount':
+            disc_prog_ord(df, rest_choice)
+        else:
+            disc_prog_rev(df, rest_choice)
 
         #st.write("INSERT GRAPH FOR CUSTOMER ORDERING PATTERNS")
 
