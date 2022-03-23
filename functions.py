@@ -7,12 +7,14 @@ def heatmap():
     streets = []
     cities = []
     lon = []
+    zip=[]
     for street in df['street']:
         if locator.geocode(f"{street} SF", timeout=10000) != None:
             cities.append("San Francisco")
             location = locator.geocode(f"{street} SF", timeout=10000)
             lat.append(location.latitude)
             lon.append(location.longitude)
+            zip.append(get_zipcode(location.latitude,location.longitude))
             streets.append(street)
 
         elif locator.geocode(f"{street} NYC", timeout=10000) != None:
@@ -20,6 +22,7 @@ def heatmap():
             location = locator.geocode(f"{street} NYC", timeout=10000)
             lat.append(location.latitude)
             lon.append(location.longitude)
+            zip.append(get_zipcode(location.latitude,location.longitude))
             streets.append(street)
 
     count = 0
@@ -33,7 +36,7 @@ def heatmap():
         freq.append(count)
         count = 0
 
-    heat_map = pd.DataFrame({'lat': lat, 'lon':lon, 'street_names': streets, 'count': freq, 'cities':cities})
+    heat_map = pd.DataFrame({'lat': lat, 'lon':lon, 'street_names': streets, 'count': freq, 'cities':cities}, 'zip':zip)
     heat_map = heat_map.sort_values(by='cities', ascending=True)
 
 def revenue_cent():
@@ -79,3 +82,14 @@ def not_selling():
         percent.append((i / float(rev_sum)) * 100)
 
     fin_table['percent'] = percent
+
+    old_table = revenue_cent()
+    fin_table['diff']=old_table['percent']-fin_table['percent']
+    fin_table['old_percent']=old_table['percent']
+
+
+def get_zipcode(geolocator, lat_field, lon_field):
+    location = geolocator.reverse((lat_field, lon_field))
+    return location.raw['address']['postcode']
+
+
