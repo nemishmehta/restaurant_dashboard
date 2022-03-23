@@ -109,6 +109,10 @@ def seasons_revenue(unstacked_revenue_per_season):
     st.pyplot(fig)
 
 
+def top_intra_day_trend(top_trend_day_period):
+
+
+
 # This is a DF that was updated with the new columns here
 # Mine was located in same folder
 data = pd.read_csv("full_table_v0.4.csv", index_col=0)
@@ -129,6 +133,8 @@ SEASONS_TREND = pd.DataFrame(data.groupby(["order_season"])["order_id"].count())
 UNSTACKED_SEASONS_TREND = SEASONS_TREND.reset_index()
 REVENUE_PER_SEASON = pd.DataFrame(data.groupby(["order_season"])["revenue"].sum())
 UNSTACKED_REVENUE_PER_SEASON = REVENUE_PER_SEASON.reset_index()
+DAY_PERIOD_TREND = pd.DataFrame(data.groupby(["order_day", "period"]).dish_name.value_counts())
+TOP_TREND_DAY_PERIOD = DAY_PERIOD_TREND.groupby(["order_day", "period"]).head(5)
 
 
 header = st.container()
@@ -148,7 +154,8 @@ with header:
         "Day / Period Revenue Trend",
         "Orders Per Day Barchart",
         "Seasonal Trends Barchart",
-        "Seasonal Revenue Trends"
+        "Seasonal Revenue Trends",
+        "Top Intra Day Trends"
     ]
     trends = st.multiselect(label="Select What to plot", options=trends_tickers)
 
@@ -180,6 +187,11 @@ with header:
     if "Seasonal Revenue Trends" in trends:
         st.subheader("Seasonal Revenue Trends")
         seasons_revenue(UNSTACKED_REVENUE_PER_SEASON)
+
+    if "Top Intra Day Trends" in trends:
+        st.subheader("Top Intra Day Trends")
+        top_intra_day_trend(TOP_TREND_DAY_PERIOD)
+
 
 
 
