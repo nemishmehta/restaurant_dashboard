@@ -5,7 +5,7 @@ def heatmap():
     for street in df['street']:
         for l in street:
             if l == "-":
-                head, sep, tail = street.partition('-')
+                head, sep, tail = street.partition('- ')
                 streets.append(tail)
             else:
                 streets.append(street)
@@ -27,7 +27,7 @@ def heatmap():
             location = locator.geocode(f"{street} NYC", timeout=10000)
             lat.append(location.latitude)
             lon.append(location.longitude)
-            
+
     count = 0
     freq = []
     mg=pd.read_csv('full_table_v0.3.csv', sep=',', index_col=0)
