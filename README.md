@@ -20,9 +20,10 @@ The project has been coded in Python 3.8.10 and can be run with a Jupyter notebo
 6. Navigate through the dashboard and select options based on preferences.
 
 ## Future Releases (To-do)
-1. Optimize codebase.
-2. Implement code to visualize heatmap of restaurant orders, customer ordering patterns, orders made by customers from competitor restaurants.
-3. Provide additional insights for allergies.
+1. Add docstrings for functions.
+2. Optimize codebase.
+3. Implement code to visualize heatmap of restaurant orders, customer ordering patterns, orders made by customers from competitor restaurants.
+4. Provide additional insights for allergies.
 
 ## Contributors
 1. Anzeem Arief
