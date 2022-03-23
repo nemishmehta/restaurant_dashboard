@@ -36,7 +36,7 @@ def heatmap():
         freq.append(count)
         count = 0
 
-    heat_map = pd.DataFrame({'lat': lat, 'lon':lon, 'street_names': streets, 'count': freq, 'cities':cities}, 'zip':zip)
+    heat_map = pd.DataFrame({'lat': lat, 'lon':lon, 'street_names': streets, 'count': freq, 'cities':cities, 'zip':zip})
     heat_map = heat_map.sort_values(by='cities', ascending=True)
 
 def revenue_cent():
