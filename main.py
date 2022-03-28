@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import pydeck as pdk
 
 
 def global_insights(df):
@@ -341,6 +342,150 @@ def least_seller(df, rest_choice, by_type):
                      color=by_type)
         st.plotly_chart(fig, use_container_width=True)
 
+def heatmap_files():
+    df = pd.read_csv('ODL_RESTAURANT.csv', sep=',', index_col=0)
+
+    streets = []
+    for street in df['street']:
+        for l in street:
+            if l == "-":
+                head, sep, tail = street.partition('- ')
+                streets.append(tail)
+            else:
+                streets.append(street)
+                break
+
+    from geopy.geocoders import Nominatim
+    locator = Nominatim(user_agent="myGeocoder")
+    lat = []
+    cities = []
+    lon = []
+    new_street = []
+
+    for street in streets:
+        if locator.geocode(f"{street} SF", timeout=10000) != None:
+            cities.append("San Francisco")
+            new_street.append(street)
+            location = locator.geocode(f"{street} SF", timeout=10000)
+            lat.append(location.latitude)
+            lon.append(location.longitude)
+
+        elif locator.geocode(f"{street} NYC", timeout=10000) != None:
+            cities.append('New York')
+            new_street.append(street)
+            location = locator.geocode(f"{street} NYC", timeout=10000)
+            lat.append(location.latitude)
+            lon.append(location.longitude)
+
+    count = 0
+    freq = []
+    mg = pd.read_csv('full_table_.csv', sep=',', index_col=0)
+    for street in new_street:
+        for streat in mg['street']:
+            if street == streat:
+                count += 1
+
+        freq.append(count)
+        count = 0
+
+    heat_map = pd.DataFrame({'lat': lat, 'lon': lon, 'street_names': new_street, 'count': freq, 'cities': cities})
+    heat_map = heat_map.sort_values(by='cities', ascending=True)
+    city = heat_map['cities'].tolist()
+    rep = heat_map['count'].tolist()
+    ind = 0
+
+    for i in city:
+        ind += 1
+        if i != 'New York':
+            ind -= 1
+            break
+
+    ny_lat = []
+    ny_lon = []
+    sf_lat = []
+    sf_lon = []
+    i = 0
+    for count in rep:
+        if freq.index(count) >= ind:
+            for n in range(0, count):
+                sf_lat.append(lat[i])
+                sf_lon.append(lon[i])
+        else:
+            for n in range(0, count):
+                ny_lat.append(lat[i])
+                ny_lon.append(lon[i])
+        i += 1
+
+    ny_df = pd.DataFrame({'lat': ny_lat, 'lon': ny_lon})
+    sf_df = pd.DataFrame({'lat': sf_lat, 'lon': sf_lon})
+    ny_df.to_csv('ny_df.csv', encoding='utf-8', index=False)
+    sf_df.to_csv('sf_df.csv', encoding='utf-8', index=False)
+
+
+def heatmap():
+
+    ny_df = pd.read_csv('ny_df.csv', sep=",")
+    sf_df = pd.read_csv('sf_df.csv', sep=",")
+
+    st.pydeck_chart(pdk.Deck(
+        map_style='mapbox://styles/mapbox/light-v9',
+        initial_view_state=pdk.ViewState(
+            latitude=37.76,
+            longitude=-122.4,
+            zoom=11,
+            pitch=50,
+        ),
+        layers=[
+            pdk.Layer(
+                'HexagonLayer',
+                data=ny_df,
+                get_position='[lon, lat]',
+                radius=200,
+                elevation_scale=4,
+                elevation_range=[0, 1000],
+                pickable=True,
+                extruded=True,
+            ),
+            pdk.Layer(
+                'ScatterplotLayer',
+                data=ny_df,
+                get_position='[lon, lat]',
+                get_color='[200, 30, 0, 160]',
+                get_radius=200,
+            ),
+        ],
+    ))
+
+    st.pydeck_chart(pdk.Deck(
+        map_style='mapbox://styles/mapbox/light-v9',
+        initial_view_state=pdk.ViewState(
+            latitude=37.76,
+            longitude=-122.4,
+            zoom=11,
+            pitch=50,
+        ),
+        layers=[
+            pdk.Layer(
+                'HexagonLayer',
+                data=sf_df,
+                get_position='[lon, lat]',
+                radius=200,
+                elevation_scale=4,
+                elevation_range=[0, 1000],
+                pickable=True,
+                extruded=True,
+            ),
+            pdk.Layer(
+                'ScatterplotLayer',
+                data=sf_df,
+                get_position='[lon, lat]',
+                get_color='[200, 30, 0, 160]',
+                get_radius=200,
+            ),
+        ],
+    ))
+
+
 
 def main():
     if __name__ == '__main__':
@@ -484,6 +629,14 @@ def main():
         st.markdown('#### Top 5 Restaurants Based on Allergy')
         st.write(f"##### Restaurants v/s {by_type_choice_allergy}")
         allergy_rest_revenue(df, allergy_choice, by_type_choice_allergy)
+
+        ny_df = pd.read_csv('ny_df.csv', sep=',', index_col=0)
+        sf_df = pd.read_csv('sf_df.csv', sep=',', index_col=0)
+
+        st.markdown('#### Heatmap for New York')
+        st.write("##### Intensity based on number of orders per restaurant")
+        heatmap()
+
 
         #rest_revenue_from_allergy(df, allergy_choice, rest_choice)
 
