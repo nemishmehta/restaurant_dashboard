@@ -10,6 +10,8 @@ The project has been coded in Python 3.8.10 and can be run with a Jupyter notebo
 2. Install [pandas](https://pandas.pydata.org/docs/getting_started/install.html), [streamlit](https://docs.streamlit.io/library/get-started/installation),  [pydeck](https://pydeck.gl/installation.html) and [geopy](https://geopy.readthedocs.io/en/stable/#installation) libraries.
 3. Clone the repository to your local machine.
 
+<img src="./assets/dashboard.gif">
+
 ## Usage
 
 1. From your terminal, navigate to the directory where the files have been cloned.
